@@ -26,12 +26,14 @@ calc_grammar = """
 
     ?factor2: NUMBER           -> number
             | BOOLEAN          -> bool
+            | STRING           -> string
             | "-" factor2      -> neg
             | "(" arithmetic ")"
 
     COMPOP: "==" | "!=" | "<=" | ">=" | "<" | ">"
 
     BOOLEAN: "true" | "false"
+    STRING: /"[^"]*"/
 
     %import common.NUMBER
     %import common.WS_INLINE
@@ -45,6 +47,9 @@ class CalcTransformer(Transformer):
 
     def bool(self, b):
         return b == "true"
+
+    def string(self, s):
+        return str(s[1:-1])  # Remove quotes clearly
 
     def add(self, a, b):
         return a + b
