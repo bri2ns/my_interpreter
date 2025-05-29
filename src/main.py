@@ -1,4 +1,5 @@
 import sys
+import os
 from parser import parse
 
 def main():
@@ -6,17 +7,15 @@ def main():
         print("Usage: python main.py <source_file>")
         return
 
-    with open(sys.argv[1], 'r') as file:
-        lines = file.readlines()
+    source_path = os.path.join(os.path.dirname(__file__), "..", sys.argv[1])
+    source_path = os.path.abspath(source_path)
 
-    for line in lines:
-        line = line.strip()
-        if line:
-            try:
-                result = parse(line)
-                print(result)
-            except Exception as e:
-                print(f"Error parsing line '{line}': {e}")
+    try:
+        with open(source_path, 'r') as file:
+            source = file.read()
+        parse(source)
+    except Exception as e:
+        print(f"Error: {e}")
 
 if __name__ == "__main__":
     main()

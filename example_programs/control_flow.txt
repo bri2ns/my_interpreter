@@ -1,0 +1,13 @@
+count = 0
+total = 0
+
+while count < 3 {
+    total = total + 10
+    count = count + 1
+}
+
+if total == 30 {
+    print "Success!"
+} else {
+    print "Failure!"
+}
