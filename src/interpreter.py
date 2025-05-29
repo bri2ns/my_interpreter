@@ -26,7 +26,6 @@ class CalcTransformer(Transformer):
     def _assign(self, name, value_lambda):
         val = value_lambda()
         self.vars[name] = val
-        print(f"[DEBUG] Assigned {name} = {val} (type: {type(val).__name__})")
         return val
 
     def print_var(self, value_lambda):

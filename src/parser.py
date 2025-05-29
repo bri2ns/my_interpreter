@@ -30,7 +30,6 @@ def parse(text_content):
         # _persistent_transformer.vars.clear() # or _persistent_transformer.__init__()
 
         parsed_result = parser_instance.parse(text_content) # Use the shared parser instance
-        print("[INFO] Input parsed. Executing statements...")
 
         statements_to_execute = []
 
