@@ -1,16 +1,20 @@
 from lark import Lark, Transformer, v_args
 
 calc_grammar = """
-    ?start: expr
+    ?start: statement+
 
-    ?expr: expr "or" term             -> or_op
+    ?statement: NAME "=" expr       -> assign_var
+              | "print" expr        -> print_var
+              | expr                -> expr_stmt
+
+    ?expr: expr "or" term           -> or_op
          | term
 
-    ?term: term "and" factor          -> and_op
+    ?term: term "and" factor        -> and_op
          | factor
 
     ?factor: comparison
-           | "not" factor             -> not_op
+           | "not" factor           -> not_op
            | "(" expr ")"
 
     ?comparison: arithmetic COMPOP arithmetic  -> comparison
@@ -27,21 +31,28 @@ calc_grammar = """
     ?factor2: NUMBER           -> number
             | BOOLEAN          -> bool
             | STRING           -> string
+            | NAME             -> var
             | "-" factor2      -> neg
             | "(" arithmetic ")"
 
     COMPOP: "==" | "!=" | "<=" | ">=" | "<" | ">"
-
     BOOLEAN: "true" | "false"
     STRING: /"[^"]*"/
+    NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
 
+    %import common.NEWLINE
+    %import common.WS
     %import common.NUMBER
-    %import common.WS_INLINE
-    %ignore WS_INLINE
+    %ignore WS
+    %ignore NEWLINE
+
 """
 
 @v_args(inline=True)
 class CalcTransformer(Transformer):
+    def __init__(self):
+        self.vars = {}
+
     def number(self, n):
         return float(n)
 
@@ -49,7 +60,19 @@ class CalcTransformer(Transformer):
         return b == "true"
 
     def string(self, s):
-        return str(s[1:-1])  # Remove quotes clearly
+        return str(s[1:-1])
+
+    def var(self, name):
+        return self.vars.get(str(name), None)
+
+    def assign_var(self, name, value):
+        self.vars[str(name)] = value
+
+    def print_var(self, value):
+        print(value)
+
+    def expr_stmt(self, value):
+        return value
 
     def add(self, a, b):
         return a + b
@@ -87,4 +110,5 @@ class CalcTransformer(Transformer):
 parser = Lark(calc_grammar, parser='lalr', transformer=CalcTransformer())
 
 def parse(text):
-    return parser.parse(text)
+    parser.parse(text)
+
