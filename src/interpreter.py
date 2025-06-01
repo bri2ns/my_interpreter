@@ -1,3 +1,5 @@
+# src/interpreter.py
+
 from lark import Transformer, v_args
 
 @v_args(inline=True)
@@ -5,6 +7,7 @@ class CalcTransformer(Transformer):
     def __init__(self):
         self.vars = {}
 
+    # --- Literal and Variable Transformers ---
     def number(self, n_token): return lambda: float(n_token)
     def bool(self, b_token):
         return lambda: str(b_token) == "true"
@@ -13,9 +16,11 @@ class CalcTransformer(Transformer):
         name_str = str(name_token)
         return lambda: self.vars[name_str] if name_str in self.vars else self._undefined(name_str)
 
+    # --- Helper for undefined ---
     def _undefined(self, name):
         raise RuntimeError(f"Undefined variable: '{name}'")
 
+    # --- Statement Transformers ---
     def assign_var(self, name_token, value_lambda):
         name_str = str(name_token)
         return lambda: self._assign(name_str, value_lambda)
@@ -26,11 +31,26 @@ class CalcTransformer(Transformer):
         return val
 
     def print_var(self, value_lambda):
-        return lambda: print(f"[OUTPUT] {value_lambda()}")
+        return lambda: print(f"{value_lambda()}") # Prints raw value
 
     def expr_stmt(self, value_lambda):
-        return lambda: print(f"[OUTPUT] {value_lambda()}")
+        return lambda: print(f"{value_lambda()}") # Prints raw value
 
+    # --- Expression Hierarchy Pass-Through Transformers ---
+    # These methods are called when a grammar rule (without '?') simply
+    # resolves to one of its alternatives that isn't an explicit operation
+    # (like 'add', 'sub') but another rule in the hierarchy.
+    # They ensure the transformed child (which should be a lambda) is passed up.
+    def expr(self, child_lambda): return child_lambda
+    def term(self, child_lambda): return child_lambda
+    def factor(self, child_lambda): return child_lambda
+    def arithmetic(self, child_lambda): return child_lambda
+    def term2(self, child_lambda): return child_lambda
+    def factor2(self, child_lambda): return child_lambda
+    # Note: factor2's alternatives mostly have specific transformer methods
+    # (number, bool, string, var, input_expr, neg) or are parenthesized arithmetic.
+
+    # --- Binary and Unary Operation Transformers ---
     def _execute_add(self, val_a, val_b):
         if isinstance(val_a, str) or isinstance(val_b, str):
             return str(val_a) + str(val_b)
@@ -50,7 +70,6 @@ class CalcTransformer(Transformer):
 
     def sub(self, a_lambda, b_lambda):
         return lambda: self._checked_sub(a_lambda(), b_lambda())
-
 
     def _checked_mul(self, val_a, val_b):
         if isinstance(val_a, (int, float)) and isinstance(val_b, (int, float)):
@@ -93,15 +112,12 @@ class CalcTransformer(Transformer):
         if op_str == "!=":
             return val_a != val_b
 
-        if isinstance(val_a, (int, float)) and isinstance(val_b, (int, float)):
-            pass
-        elif isinstance(val_a, str) and isinstance(val_b, str):
-            pass
-        elif isinstance(val_a, bool) and isinstance(val_b, bool):
-             pass
-        else:
+        # Check types for ordered comparison
+        if not ((isinstance(val_a, (int, float)) and isinstance(val_b, (int, float))) or \
+                (isinstance(val_a, str) and isinstance(val_b, str)) or \
+                (isinstance(val_a, bool) and isinstance(val_b, bool))):
             return self._runtime_error(f"Cannot perform ordered comparison ({op_str}) between {type(val_a).__name__} and {type(val_b).__name__}")
-
+        
         if op_str == "<": return val_a < val_b
         if op_str == ">": return val_a > val_b
         if op_str == "<=": return val_a <= val_b
@@ -109,16 +125,25 @@ class CalcTransformer(Transformer):
         
         return self._runtime_error(f"Unknown comparison operator: {op_str}")
 
-    def comparison(self, a_lambda, op_token, b_lambda):
-        op_str = str(op_token)
-        return lambda: self._execute_comparison(a_lambda(), op_str, b_lambda())
+    def comparison(self, child1, op_token=None, child2=None):
+        if op_token is None and child2 is None:
+            # This is the case "comparison: arithmetic"
+            # child1 is the transformed arithmetic (a lambda)
+            return child1 # Pass the arithmetic lambda up directly
+        else:
+            # This is the case "comparison: arithmetic COMPOP arithmetic"
+            a_lambda = child1
+            b_lambda = child2
+            op_str = str(op_token)
+            return lambda: self._execute_comparison(a_lambda(), op_str, b_lambda())
 
     def and_op(self, a_lambda, b_lambda): return lambda: a_lambda() and b_lambda()
-    def or_op(self, a_lambda, b_lambda): return lambda: a_lambda() or b_lambda()
+    def or_op(self, a_lambda, b_lambda): return lambda: a_lambda() or b_lambda() # Make sure grammar alias is 'or_op'
     
     def not_op(self, a_lambda):
         return lambda: self._execute_neg(a_lambda())
 
+    # --- Control Flow Transformers ---
     def input_expr(self, string_token):
         prompt = str(string_token)[1:-1]
         return lambda: input(prompt)

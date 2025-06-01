@@ -13,28 +13,28 @@ calc_grammar = """
 
     block: "{" statement+ "}"
 
-    ?expr: expr "or" term             -> or_op
+    expr: expr "or" term             -> or_op
          | term
 
-    ?term: term "and" factor          -> and_op
+    term: term "and" factor          -> and_op
          | factor
 
-    ?factor: comparison
+    factor: comparison
            | "not" factor            -> not_op
            | "(" expr ")"
 
-    ?comparison: arithmetic COMPOP arithmetic -> comparison
+    comparison: arithmetic COMPOP arithmetic -> comparison
                | arithmetic
 
-    ?arithmetic: arithmetic "+" term2  -> add
+    arithmetic: arithmetic "+" term2  -> add
                | arithmetic "-" term2  -> sub
                | term2
 
-    ?term2: term2 "*" factor2 -> mul
+    term2: term2 "*" factor2 -> mul
           | term2 "/" factor2 -> div
           | factor2
 
-    ?factor2: NUMBER              -> number
+    factor2: NUMBER              -> number
             | BOOLEAN             -> bool
             | STRING              -> string
             | NAME                -> var
