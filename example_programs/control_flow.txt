@@ -2,12 +2,13 @@ count = 0
 total = 0
 
 while count < 3 {
-    total = total + 10
+    value = input("Enter a number: ")
+    total = total + value
     count = count + 1
 }
 
 if total == 30 {
     print "Success!"
 } else {
-    print "Failure!"
+    print "Total was " + total
 }
