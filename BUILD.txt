@@ -1,0 +1,33 @@
+BUILD INSTRUCTIONS
+==================
+
+Project Name: My Custom Language Interpreter
+Language: Python 3 (Developed and tested with Python 3.10)
+
+Dependency:
+- Lark parsing library (https://github.com/lark-parser/lark)
+
+Setup & Running Instructions:
+
+1.  **Ensure Python 3 is Installed:**
+    This project requires Python 3 (preferably 3.8 or newer).
+
+2.  **Install the Lark Library:**
+    Open a terminal or command prompt. If you do not have the 'lark' library installed, install it using pip:
+    pip install lark
+
+    (Note: For isolated project dependencies, using a Python virtual environment is good practice but not strictly required for this project if Lark can be installed globally or is already available.)
+
+3.  **Run the Interpreter:**
+    Navigate to the project's root directory (e.g., 'my_interpreter') in your terminal.
+    The main script to run the interpreter is `src/main.py`. It requires one argument: the path to a source file written in the custom language.
+
+    Command format:
+    python src/main.py <path_to_your_source_file.txt>
+
+    Examples:
+    python src/main.py example_programs/stage1_arithmetic.txt
+    python src/main.py example_programs/stage5_control_flow.txt
+    python src/main.py example_programs/stage2_boolean.txt
+
+No compilation is needed.
