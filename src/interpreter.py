@@ -9,8 +9,8 @@ class CalcTransformer(Transformer):
 
     # --- Literal and Variable Transformers ---
     def number(self, n_token): return lambda: float(n_token)
-    def bool(self, b_token):
-        return lambda: str(b_token) == "true"
+    def bool_val(self, boolean_token_value): # boolean_token_value will be "true" or "false"
+        return lambda: str(boolean_token_value) == "true"
     def string(self, s_token): return lambda: str(s_token[1:-1])
     def var(self, name_token):
         name_str = str(name_token)
@@ -33,8 +33,24 @@ class CalcTransformer(Transformer):
     def print_var(self, value_lambda):
         return lambda: print(f"{value_lambda()}") # Prints raw value
 
-    def expr_stmt(self, value_lambda):
-        return lambda: print(f"{value_lambda()}") # Prints raw value
+    def expr_stmt(self, value_lambda): # MODIFIED FOR DEBUGGING
+        def _executor():
+            # Debug print to see the type of value_lambda before it's called
+            try:
+                result = value_lambda() # This will error if value_lambda is not callable
+                # If you want to see the result before the final print (optional):
+                # print(f"!!! INTERMEDIATE EXPR_STMT: Evaluated result = {result} (type {type(result)})")
+                print(f"{result}") # Your current output format
+            except TypeError as te:
+                print(f"!!! TYPE ERROR in expr_stmt: value_lambda was type {type(value_lambda)}. Error: {te}")
+                # You might want to see what value_lambda is if it's not callable:
+                # if not callable(value_lambda):
+                # print(f"!!! value_lambda content: {value_lambda}")
+                raise # Re-raise to see the full traceback from parser.py
+            except Exception as e:
+                print(f"!!! OTHER ERROR in expr_stmt evaluating value_lambda: {e}")
+                raise 
+        return _executor
 
     # --- Expression Hierarchy Pass-Through Transformers ---
     # These methods are called when a grammar rule (without '?') simply

@@ -1,0 +1,36 @@
+// Stage 3: Text Values
+
+// Basic string declaration and printing
+"hello world"
+"this is a string"
+
+// String concatenation
+"hello" + " " + "world"
+"LDI" + " is " + "fun"
+"Part1" + "Part2"
+
+// String equality and inequality
+"test" == "test"
+"test" == "Test"
+"test" != "Test"
+"abc" != "abc"
+"" == "" // Empty string comparison
+
+// Concatenation leading to equality/inequality
+"foo" + "bar" == "foobar"
+"10" + " corgis" == "10 corgis"
+"10 corgis" != "10" + "corgis" // Should be false, as they are equal
+"apple" + "pie" != "apple pie"  // Should be false
+
+// Interaction with other types (behavior to be defined by your language, defended in viva) [cite: 216, 217]
+// The following will test how your '+' operator (from _execute_add) handles mixed types.
+// Based on our current _execute_add, numbers will be converted to strings.
+1 + "0"         // Expected: "10" (string) if number converts to string
+"value: " + 10  // Expected: "value: 10" (string)
+5 + " bananas"  // Expected: "5 bananas" (string)
+
+// Comparison of string with boolean or number (behavior to be defined/defended) [cite: 216, 217]
+// Based on our current _execute_comparison, these ordered comparisons would error.
+// Equality (==, !=) would evaluate based on Python's cross-type comparison.
+"true" == true  // Expected: False (string "true" vs boolean True)
+"10" == 10      // Expected: False (string "10" vs number 10)

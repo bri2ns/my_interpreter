@@ -1,0 +1,54 @@
+// Stage 4: Global Data
+
+// Basic assignments and printing
+x = 10
+y = 20
+print x
+print y
+
+result = x + y
+print result
+
+// Reassignment and accumulation
+x = x + 5       // x should become 15
+print x
+result = result + x + y // result should be 30 + 15 + 20 = 65
+print result
+
+// String variables and operations
+message = "hello"
+print message
+message = message + " " + "world"
+print message
+greeting = message + " from " + "my language!"
+print greeting
+
+// Boolean variables and operations
+is_active = true
+print is_active
+can_proceed = is_active and (x > 10) // x is 15, 15 > 10 is true. true and true is true.
+print can_proceed
+can_proceed = not can_proceed          // can_proceed becomes false
+print can_proceed
+
+// Mixed type concatenation with variables
+num_items = 5
+label = "Total items: "
+report = label + num_items
+print report
+
+// Using variables in conditions (Stage 5 preview, but uses Stage 4 variables)
+// This part is more to ensure variables work in complex expressions
+test_val = 100
+check = (test_val / 10) == (5 + 5) // 10 == 10 -> true
+print check
+
+// Error case test (uncomment to test, should produce a RUNTIME ERROR)
+// print undefined_variable
+
+// Another error case for invalid type in an operation not handled by conversion
+// (e.g., subtraction with a string)
+// Uncomment to test, should produce a RUNTIME ERROR
+// numeric_val = 100
+// error_result = numeric_val - "text"
+// print error_result

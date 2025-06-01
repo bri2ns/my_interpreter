@@ -1,0 +1,41 @@
+// Stage 5: Control Flow - Comprehensive Test (Shopping List)
+// This script demonstrates input, while loops, if-else statements,
+// variable manipulation, and string operations.
+
+print "--- Shopping List Program ---"
+
+is_running = true
+shopping_list_str = "" // Using a distinct name for the string
+item_count = 0
+
+while (is_running == true) {
+    print "" // Adds a blank line for better readability in the terminal
+    print "--- Add Item Menu ---"
+    print "Enter the item you want to add to your shopping list."
+    item = input("Type the item name, or type 'done' (or press Enter) to finish: ")
+
+    if (item == "done" or item == "") {
+        is_running = false // Set condition to false to exit the while loop
+        print "Finalizing your shopping list..."
+    } else {
+        // Add the new item to the shopping list string
+        if (item_count == 0) {
+            shopping_list_str = item // First item, no preceding comma
+        } else {
+            // Subsequent items, add with a preceding comma and space
+            shopping_list_str = shopping_list_str + ", " + item
+        }
+        item_count = item_count + 1 // Increment the count of items
+        print "'" + item + "' has been added to your list."
+    }
+}
+
+print "" // Blank line for spacing
+print "--- Your Final Shopping List ---"
+if (item_count == 0) { // Check if any items were actually added
+    print "(The shopping list is empty)"
+} else {
+    print shopping_list_str
+}
+print "------------------------------"
+print "Thank you for using the Shopping List Program!"

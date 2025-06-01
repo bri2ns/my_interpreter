@@ -1,59 +1,60 @@
 # src/grammar.py
 
-calc_grammar = """
+calc_grammar = r"""
+    // Entry point
     ?start: statement+
 
-    ?statement: NAME "=" expr            -> assign_var
+    // Statements
+    ?statement: NAME "=" expr           -> assign_var
               | "print" expr            -> print_var
               | "if" expr block         -> if_stmt
               | "if" expr block "else" block -> if_else_stmt
               | "while" expr block      -> while_stmt
-            //  | "input" "(" STRING ")"  -> input_expr   // REMOVED from here
               | expr                    -> expr_stmt
 
+    // Code block
     block: "{" statement+ "}"
 
-    expr: expr "or" term             -> or_op
-         | term
+    // Expression precedence
+    ?expr: or_expr
 
-    term: term "and" factor          -> and_op
-         | factor
+    ?or_expr: and_expr
+            | or_expr "or" and_expr    -> or_op
 
-    factor: comparison
-           | "not" factor            -> not_op
-           | "(" expr ")"
+    ?and_expr: comparison
+             | and_expr "and" comparison -> and_op
 
-    comparison: arithmetic COMPOP arithmetic -> comparison
-               | arithmetic
+    ?comparison: sum
+               | sum COMPOP sum         -> comparison
 
-    arithmetic: arithmetic "+" term2  -> add
-               | arithmetic "-" term2  -> sub
-               | term2
+    // Arithmetic with precedence
+    ?sum: product
+        | sum "+" product               -> add
+        | sum "-" product               -> sub
 
-    term2: term2 "*" factor2 -> mul
-          | term2 "/" factor2 -> div
-          | factor2
+    ?product: factor
+            | product "*" factor        -> mul
+            | product "/" factor        -> div
 
-    factor2: NUMBER              -> number
-            | BOOLEAN             -> bool
-            | STRING              -> string
-            | NAME                -> var
-            | "input" "(" STRING ")"  -> input_expr   // ADDED here
-            | "-" factor2         -> neg
-            | "(" arithmetic ")"
+    ?factor: "-" factor                 -> neg
+           | "not" factor               -> not_op
+           | atom
+
+    ?atom: NUMBER                         -> number
+         | STRING                         -> string
+         | BOOLEAN                        -> bool_val  // New alias
+         | NAME                           -> var
+         | "input" "(" STRING ")"         -> input_expr
+         | "(" expr ")"
+
+    // Tokens (ensure BOOLEAN has higher priority than NAME)
+    BOOLEAN.2: "true" | "false"       // Define BOOLEAN terminal again
+    NAME.0: /[a-zA-Z_]\w*/
+    STRING.1: /"[^"]*"/              // Give STRING a priority too
+    NUMBER: /-?\d+(\.\d+)?/
 
     COMPOP: "==" | "!=" | "<=" | ">=" | "<" | ">"
 
-    // --- Terminal Priorities ---
-    // Higher number means higher priority.
-    // This helps ensure "true" and "false" are seen as BOOLEANs, not NAMEs.
-    BOOLEAN.2: "true" | "false"
-    STRING.1: /"[^"]*"/
-    NAME.0: /[a-zA-Z_][a-zA-Z0-9_]*/
-
-    %import common.NUMBER
-    %import common.NEWLINE
-    %import common.WS
-    %ignore WS
-    %ignore NEWLINE
+    %ignore /\s+/
+    %ignore /\/\/[^\n]*/
 """
