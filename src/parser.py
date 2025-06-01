@@ -1,35 +1,17 @@
-# src/parser.py
 
 from lark import Lark, Tree
 import traceback
 
-# Use relative imports if all these files are in the same 'src' package/directory
 from grammar import calc_grammar
 from interpreter import CalcTransformer
 
-# Create a single transformer instance. Its state (self.vars) will persist
-# across multiple calls to `parser_instance.parse()` if this module is imported once
-# and `parse()` is called multiple times. This is suitable for running one script.
 _persistent_transformer = CalcTransformer()
 parser_instance = Lark(calc_grammar, parser='lalr', transformer=_persistent_transformer)
 
 def parse(text_content):
-    """
-    Parses and executes the given text_content using the defined grammar and transformer.
-    The transformer's state (e.g., variables) will persist across calls if this
-    function is called multiple times within the same Python process/session,
-    because it reuses the `_persistent_transformer` instance.
 
-    If you need a fresh state for each call to `parse()`, you would either:
-    1. Re-initialize the transformer: `_persistent_transformer.__init__()` here.
-    2. Create a new Lark parser and transformer instance inside this function (less efficient).
-    """
     try:
-        # If you wanted to reset variables for every independent script run from main.py
-        # and main.py calls parse() for each script:
-        # _persistent_transformer.vars.clear() # or _persistent_transformer.__init__()
-
-        parsed_result = parser_instance.parse(text_content) # Use the shared parser instance
+        parsed_result = parser_instance.parse(text_content)
 
         statements_to_execute = []
 
@@ -67,4 +49,4 @@ def parse(text_content):
 
     except Exception as e_parse:
         print(f"[PARSING ERROR] {e_parse}")
-        # traceback.print_exc() # Uncomment for full trace if needed
+        # traceback.print_exc()

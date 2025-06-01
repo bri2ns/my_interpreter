@@ -7,20 +7,17 @@ class CalcTransformer(Transformer):
     def __init__(self):
         self.vars = {}
 
-    # --- Literal and Variable Transformers ---
     def number(self, n_token): return lambda: float(n_token)
-    def bool_val(self, boolean_token_value): # boolean_token_value will be "true" or "false"
+    def bool_val(self, boolean_token_value): 
         return lambda: str(boolean_token_value) == "true"
     def string(self, s_token): return lambda: str(s_token[1:-1])
     def var(self, name_token):
         name_str = str(name_token)
         return lambda: self.vars[name_str] if name_str in self.vars else self._undefined(name_str)
 
-    # --- Helper for undefined ---
     def _undefined(self, name):
         raise RuntimeError(f"Undefined variable: '{name}'")
 
-    # --- Statement Transformers ---
     def assign_var(self, name_token, value_lambda):
         name_str = str(name_token)
         return lambda: self._assign(name_str, value_lambda)
@@ -31,42 +28,28 @@ class CalcTransformer(Transformer):
         return val
 
     def print_var(self, value_lambda):
-        return lambda: print(f"{value_lambda()}") # Prints raw value
+        return lambda: print(f"{value_lambda()}")
 
-    def expr_stmt(self, value_lambda): # MODIFIED FOR DEBUGGING
+    def expr_stmt(self, value_lambda): 
         def _executor():
-            # Debug print to see the type of value_lambda before it's called
             try:
-                result = value_lambda() # This will error if value_lambda is not callable
-                # If you want to see the result before the final print (optional):
-                # print(f"!!! INTERMEDIATE EXPR_STMT: Evaluated result = {result} (type {type(result)})")
-                print(f"{result}") # Your current output format
+                result = value_lambda() 
+                print(f"{result}") 
             except TypeError as te:
                 print(f"!!! TYPE ERROR in expr_stmt: value_lambda was type {type(value_lambda)}. Error: {te}")
-                # You might want to see what value_lambda is if it's not callable:
-                # if not callable(value_lambda):
-                # print(f"!!! value_lambda content: {value_lambda}")
-                raise # Re-raise to see the full traceback from parser.py
+                raise 
             except Exception as e:
                 print(f"!!! OTHER ERROR in expr_stmt evaluating value_lambda: {e}")
                 raise 
         return _executor
 
-    # --- Expression Hierarchy Pass-Through Transformers ---
-    # These methods are called when a grammar rule (without '?') simply
-    # resolves to one of its alternatives that isn't an explicit operation
-    # (like 'add', 'sub') but another rule in the hierarchy.
-    # They ensure the transformed child (which should be a lambda) is passed up.
     def expr(self, child_lambda): return child_lambda
     def term(self, child_lambda): return child_lambda
     def factor(self, child_lambda): return child_lambda
     def arithmetic(self, child_lambda): return child_lambda
     def term2(self, child_lambda): return child_lambda
     def factor2(self, child_lambda): return child_lambda
-    # Note: factor2's alternatives mostly have specific transformer methods
-    # (number, bool, string, var, input_expr, neg) or are parenthesized arithmetic.
 
-    # --- Binary and Unary Operation Transformers ---
     def _execute_add(self, val_a, val_b):
         if isinstance(val_a, str) or isinstance(val_b, str):
             return str(val_a) + str(val_b)
@@ -107,16 +90,16 @@ class CalcTransformer(Transformer):
         return lambda: self._checked_div(a_lambda(), b_lambda())
 
     def _execute_neg(self, val_a):
-        if isinstance(val_a, bool): # CHECK FOR BOOLEAN FIRST!
+        if isinstance(val_a, bool): 
             result = not val_a
             return result
-        elif isinstance(val_a, (int, float)): # Then check for int/float
+        elif isinstance(val_a, (int, float)): 
             result = -val_a
             return result
         else:
             return self._runtime_error(f"Unsupported type for negation/not: {type(val_a).__name__}")
 
-    def neg(self, a_lambda): # For unary numeric negation
+    def neg(self, a_lambda): 
         return lambda: self._execute_neg(a_lambda())
 
     def _runtime_error(self, message):
@@ -128,7 +111,6 @@ class CalcTransformer(Transformer):
         if op_str == "!=":
             return val_a != val_b
 
-        # Check types for ordered comparison
         if not ((isinstance(val_a, (int, float)) and isinstance(val_b, (int, float))) or \
                 (isinstance(val_a, str) and isinstance(val_b, str)) or \
                 (isinstance(val_a, bool) and isinstance(val_b, bool))):
@@ -143,23 +125,19 @@ class CalcTransformer(Transformer):
 
     def comparison(self, child1, op_token=None, child2=None):
         if op_token is None and child2 is None:
-            # This is the case "comparison: arithmetic"
-            # child1 is the transformed arithmetic (a lambda)
-            return child1 # Pass the arithmetic lambda up directly
+            return child1 
         else:
-            # This is the case "comparison: arithmetic COMPOP arithmetic"
             a_lambda = child1
             b_lambda = child2
             op_str = str(op_token)
             return lambda: self._execute_comparison(a_lambda(), op_str, b_lambda())
 
     def and_op(self, a_lambda, b_lambda): return lambda: a_lambda() and b_lambda()
-    def or_op(self, a_lambda, b_lambda): return lambda: a_lambda() or b_lambda() # Make sure grammar alias is 'or_op'
+    def or_op(self, a_lambda, b_lambda): return lambda: a_lambda() or b_lambda() 
     
     def not_op(self, a_lambda):
         return lambda: self._execute_neg(a_lambda())
 
-    # --- Control Flow Transformers ---
     def input_expr(self, string_token):
         prompt = str(string_token)[1:-1]
         return lambda: input(prompt)
