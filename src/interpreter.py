@@ -1,7 +1,4 @@
-# src/interpreter.py
-
 from lark import Transformer, v_args
-# No need for traceback here as error handling is in parse() or specific methods
 
 @v_args(inline=True)
 class CalcTransformer(Transformer):
@@ -75,14 +72,16 @@ class CalcTransformer(Transformer):
         return lambda: self._checked_div(a_lambda(), b_lambda())
 
     def _execute_neg(self, val_a):
-        if isinstance(val_a, (int, float)):
-            return -val_a
-        elif isinstance(val_a, bool):
-            return not val_a
+        if isinstance(val_a, bool): # CHECK FOR BOOLEAN FIRST!
+            result = not val_a
+            return result
+        elif isinstance(val_a, (int, float)): # Then check for int/float
+            result = -val_a
+            return result
         else:
             return self._runtime_error(f"Unsupported type for negation/not: {type(val_a).__name__}")
 
-    def neg(self, a_lambda):
+    def neg(self, a_lambda): # For unary numeric negation
         return lambda: self._execute_neg(a_lambda())
 
     def _runtime_error(self, message):
@@ -116,24 +115,43 @@ class CalcTransformer(Transformer):
 
     def and_op(self, a_lambda, b_lambda): return lambda: a_lambda() and b_lambda()
     def or_op(self, a_lambda, b_lambda): return lambda: a_lambda() or b_lambda()
+    
     def not_op(self, a_lambda):
         return lambda: self._execute_neg(a_lambda())
 
-    def input_expr(self, msg_lambda):
-        return lambda: input(msg_lambda())
+    def input_expr(self, string_token):
+        prompt = str(string_token)[1:-1]
+        return lambda: input(prompt)
 
     def block(self, *statements_lambdas):
         return list(statements_lambdas)
 
     def if_stmt(self, condition_lambda, block_content_list):
-        return lambda: [stmt_lambda() for stmt_lambda in block_content_list] if condition_lambda() else None
+        def _if_executor():
+            cond_val = condition_lambda()
+            if cond_val:
+                for stmt_lambda in block_content_list:
+                    stmt_lambda()
+            return None
+        return _if_executor
 
     def if_else_stmt(self, condition_lambda, block_true_list, block_false_list):
-        return lambda: [stmt_lambda() for stmt_lambda in (block_true_list if condition_lambda() else block_false_list)]
+        def _if_else_executor():
+            cond_val = condition_lambda()
+            if cond_val:
+                for stmt_lambda in block_true_list:
+                    stmt_lambda()
+            else:
+                for stmt_lambda in block_false_list:
+                    stmt_lambda()
+        return _if_else_executor
 
     def while_stmt(self, condition_lambda, block_content_list):
         def loop():
-            while condition_lambda():
+            while True:
+                cond_val = condition_lambda()
+                if not cond_val:
+                    break
                 for stmt_lambda in block_content_list:
                     stmt_lambda()
         return loop

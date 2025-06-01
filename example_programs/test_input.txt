@@ -1,0 +1,6 @@
+print "Let's test the input function."
+name = input("Please enter your name: ")
+print "Hello, " + name + "!"
+
+age_str = input("Please enter your age: ")
+print "You said your age is: " + age_str

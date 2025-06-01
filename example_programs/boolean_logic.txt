@@ -1,7 +1,0 @@
-true or false
-true and false
-not false
-1 + 2 == 3
-4 < 10
-(2 * 5 >= 10) and (3 != 4)
-not (5 < 3 or 2 == 2)

@@ -8,7 +8,7 @@ calc_grammar = """
               | "if" expr block         -> if_stmt
               | "if" expr block "else" block -> if_else_stmt
               | "while" expr block      -> while_stmt
-              | "input" "(" STRING ")"  -> input_expr
+            //  | "input" "(" STRING ")"  -> input_expr   // REMOVED from here
               | expr                    -> expr_stmt
 
     block: "{" statement+ "}"
@@ -38,14 +38,18 @@ calc_grammar = """
             | BOOLEAN             -> bool
             | STRING              -> string
             | NAME                -> var
+            | "input" "(" STRING ")"  -> input_expr   // ADDED here
             | "-" factor2         -> neg
             | "(" arithmetic ")"
 
     COMPOP: "==" | "!=" | "<=" | ">=" | "<" | ">"
 
-    BOOLEAN: "true" | "false"
-    STRING: /"[^"]*"/
-    NAME: /[a-zA-Z_][a-zA-Z0-9_]*/
+    // --- Terminal Priorities ---
+    // Higher number means higher priority.
+    // This helps ensure "true" and "false" are seen as BOOLEANs, not NAMEs.
+    BOOLEAN.2: "true" | "false"
+    STRING.1: /"[^"]*"/
+    NAME.0: /[a-zA-Z_][a-zA-Z0-9_]*/
 
     %import common.NUMBER
     %import common.NEWLINE
