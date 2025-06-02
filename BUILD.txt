@@ -16,6 +16,9 @@ Setup & Running Instructions:
     Open a terminal or command prompt. If you do not have the 'lark' library installed, install it using pip:
     pip install lark
 
+    Alternatively, install all dependencies via:
+        pip install -r requirements.txt
+
     (Note: For isolated project dependencies, using a Python virtual environment is good practice but not strictly required for this project if Lark can be installed globally or is already available.)
 
 3.  **Run the Interpreter:**
